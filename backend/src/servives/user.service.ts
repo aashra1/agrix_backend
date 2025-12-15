@@ -19,7 +19,6 @@ export class UserService {
     const user = await userRepository.getUserById(userId);
     if (!user) throw new Error("User not found");
 
-    // Strip _id if present
     const { _id, confirmPassword, ...data } = updatedData;
 
     return userRepository.updateUser(userId, data);

@@ -1,6 +1,6 @@
 // src/repositories/user.repository.ts
 import { UserModel, IUser } from "../model/user.model";
-import { User } from "../types/user.type";
+
 
 export interface IUserRepository {
   getAllUsers(skip?: number, limit?: number): Promise<IUser[]>;
