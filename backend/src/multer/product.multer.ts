@@ -1,13 +1,33 @@
 import multer from "multer";
 import path from "path";
+import fs from "fs";
+
+const uploadDir = path.join(__dirname, "../uploads/product-images");
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 
 const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, "uploads/products");
+  destination: (req, file, cb) => {
+    cb(null, uploadDir);
   },
-  filename: (_req, file, cb) => {
+  filename: (req, file, cb) => {
     cb(null, `${Date.now()}-${file.originalname}`);
   },
 });
 
-export const uploadProductImage = multer({ storage });
+// File filter to allow only certain types
+const fileFilter = (req: Express.Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+  const allowedTypes = /jpeg|jpg|png|pdf|doc|docx/;
+  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+  const mimetype = allowedTypes.test(file.mimetype);
+
+  if (extname && mimetype) cb(null, true);
+  else cb(new Error("File type not allowed"));
+};
+
+// Multer instance
+const uploadProductImage = multer({ storage, fileFilter });
+
+export default uploadProductImage;

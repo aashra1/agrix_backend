@@ -17,7 +17,6 @@ const productSchema = new Schema<ProductDocument>(
       required: true,
     },
     brand: String,
-    manufacturer: String,
     price: { type: Number, required: true },
     discount: { type: Number, default: 0 },
     stock: { type: Number, required: true },

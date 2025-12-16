@@ -1,7 +1,7 @@
 import { Router } from "express";
 import * as productController from "../controllers/product.controller";
 import { authGuard, authGuardBusiness } from "../middleware/authGuard";
-import { uploadProductImage } from "../multer/product.multer";
+import uploadProductImage from "../multer/product.multer";
 
 const router = Router();
 

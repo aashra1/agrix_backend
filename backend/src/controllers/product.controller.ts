@@ -6,8 +6,8 @@ const productService = new ProductService();
 export const addProduct = async (req: Request, res: Response) => {
   try {
     const businessId = req.user!.id;
-
     const { name, category, price, stock } = req.body;
+    
     if (!name || !category || !price || !stock) {
       return res.status(400).json({
         success: false,
@@ -26,8 +26,9 @@ export const addProduct = async (req: Request, res: Response) => {
       message: "Product added successfully.",
       product,
     });
-  } catch (error) {
-    res.status(500).json({ success: false, message: "Server Error" });
+  } catch (error: any) {
+    console.error("Add Product Error:", error);
+    res.status(500).json({ success: false, message: error.message || "Server Error" });
   }
 };
 

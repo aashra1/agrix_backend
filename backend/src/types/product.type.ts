@@ -5,7 +5,6 @@ export interface IProduct {
   name: string;
   category: Types.ObjectId;
   brand?: string;
-  manufacturer?: string;
   price: number;
   discount?: number;
   stock: number;
