@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { BusinessController } from "../controllers/business.controller";
 import { authGuard, authGuardAdmin } from "../middleware/authGuard";
-import uploadBusinessDoc from "../multer/multerBusiness";
+import uploadBusinessDoc from "../multer/business.multer";
 
 const router = Router();
 

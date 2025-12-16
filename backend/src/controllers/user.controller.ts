@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { User } from '../types/user.type';
 import { CreateUserDTO, LoginUserDTO, EditUserDTO } from '../dtos/user.dto';
-import { UserService } from '../servives/user.service';
+import { UserService } from '../services/user.service';
 
 let userService = new UserService();
 

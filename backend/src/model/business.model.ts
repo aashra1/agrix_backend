@@ -1,5 +1,4 @@
 import mongoose, { Document, Schema, Model } from "mongoose";
-import { IBusiness } from "../types/business.type";
 
 export interface BusinessDocument extends Document {
   businessName: string;

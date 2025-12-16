@@ -28,6 +28,6 @@ export const EditUserDTO = UserSchema.pick({
   email: true,
   phoneNumber: true,
   location: true,
-});
+}).partial();
 
 export type EditUserDTO = z.infer<typeof EditUserDTO>;
