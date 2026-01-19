@@ -20,11 +20,11 @@ export class UserRepository implements IUserRepository {
     return UserModel.findById(userId).exec();
   }
 
-  async getUserByEmail(email: string) { // Changed method name
+  async getUserByEmail(email: string) {
     return UserModel.findOne({ email }).exec();
   }
 
-  async findByEmail(email: string) { // Simplified method
+  async findByEmail(email: string) {
     return UserModel.findOne({ email }).exec();
   }
 

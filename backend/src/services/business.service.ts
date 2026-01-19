@@ -1,88 +1,98 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import dotenv from "dotenv";
-import { Business, BusinessDocument } from "../model/business.model";
-import { RegisterBusinessDto, LoginBusinessDto, ApproveBusinessDto } from "../dtos/business.dto";
+import { BusinessRepository } from "../repositories/business.repository";
+import { BusinessDocument } from "../model/business.model";
+import {
+  RegisterBusinessDto,
+  LoginBusinessDto,
+  ApproveBusinessDto,
+} from "../dtos/business.dto";
 
-dotenv.config();
+const businessRepository = new BusinessRepository();
 
 export class BusinessService {
-  // Register a new business
-  async register(dto: RegisterBusinessDto) {
-    const { businessName, username, email, phoneNumber, password, confirmPassword, location } = dto;
+  private sanitizeBusiness(business: any) {
+    const businessObj = business.toObject ? business.toObject() : business;
+    const { password, confirmPassword, __v, ...safeBusiness } = businessObj;
+    return safeBusiness;
+  }
 
-    if (!businessName || !username || !email || !phoneNumber || !password || !confirmPassword) {
-      throw new Error("All fields are required");
-    }
+  public getSanitizedBusiness(business: any) {
+    return this.sanitizeBusiness(business);
+  }
 
-    if (password !== confirmPassword) throw new Error("Passwords do not match");
+  register = async (dto: RegisterBusinessDto) => {
+    const { businessName, email, phoneNumber, password, address } = dto;
 
-    const existing = await Business.findOne({ $or: [{ email }, { username }] });
+    const existing = await businessRepository.findByEmail(email);
     if (existing) throw new Error("Business already exists");
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newBusiness = new Business({
+    const newBusinessData = {
       businessName,
-      username,
       email,
       phoneNumber,
       password: hashedPassword,
-      confirmPassword: hashedPassword,
-      location,
-      businessStatus: "Pending",
-    });
+      address,
+      businessStatus: "Pending" as const,
+    };
 
-    await newBusiness.save();
+    const createdBusiness = await businessRepository.create(newBusinessData);
 
     const tempToken = jwt.sign(
-      { id: newBusiness._id, role: "Business", temp: true },
+      { id: createdBusiness._id, role: "Business", temp: true },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
     return {
-      message: "Business registered successfully. Please upload your document for verification.",
+      message: "Business registered successfully. Please upload your document.",
       tempToken,
+      business: this.sanitizeBusiness(createdBusiness),
     };
-  }
+  };
 
-  // Business login
-  async login(dto: LoginBusinessDto) {
-    const { username, password } = dto;
-    
-    const business = await Business.findOne({ username });
+  login = async (dto: LoginBusinessDto) => {
+    const { email, password } = dto;
+
+    const business = await businessRepository.findByEmail(email);
     if (!business) throw new Error("Business not found");
 
     const isMatch = await bcrypt.compare(password, business.password);
     if (!isMatch) throw new Error("Invalid credentials");
 
-    if (business.businessStatus === "Pending") throw new Error("Please upload document and wait for admin approval");
-    if (business.businessStatus === "Rejected") throw new Error("Business registration rejected by admin");
+    if (business.businessStatus === "Pending")
+      throw new Error("Please upload document and wait for admin approval");
+    if (business.businessStatus === "Rejected")
+      throw new Error("Business registration rejected by admin");
 
     const token = jwt.sign(
       { id: business._id, role: business.role },
       process.env.JWT_SECRET as string,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" },
     );
 
-    return { business, token, message: "Business logged in successfully" };
-  }
+    return {
+      business: this.sanitizeBusiness(business),
+      token,
+      message: "Business logged in successfully",
+    };
+  };
 
-  // Upload business document
-  async uploadDocument(businessId: string, documentPath: string): Promise<BusinessDocument> {
-    const business = await Business.findById(businessId);
+  uploadDocument = async (businessId: string, documentPath: string) => {
+    const business = await businessRepository.findById(businessId);
     if (!business) throw new Error("Business not found");
 
     business.businessDocument = documentPath;
     business.businessStatus = "Pending";
 
-    return business.save();
-  }
+    const updated = await businessRepository.save(business);
+    return this.sanitizeBusiness(updated);
+  };
 
-  // Approve or reject business
-  async approveBusiness(businessId: string, dto: ApproveBusinessDto): Promise<BusinessDocument> {
-    const business = await Business.findById(businessId);
+  approveBusiness = async (businessId: string, dto: ApproveBusinessDto) => {
+    const business = await businessRepository.findById(businessId);
     if (!business) throw new Error("Business not found");
 
     if (dto.action === "Approve") {
@@ -93,11 +103,18 @@ export class BusinessService {
       business.businessStatus = "Rejected";
     }
 
-    return business.save();
-  }
+    const updated = await businessRepository.save(business);
+    return this.sanitizeBusiness(updated);
+  };
 
-  // Get all businesses
-  async getAllBusinesses(): Promise<BusinessDocument[]> {
-    return Business.find();
-  }
+  getAllBusinesses = async () => {
+    const businesses = await businessRepository.findAll();
+    return businesses.map((b) => this.sanitizeBusiness(b));
+  };
+
+  getBusinessRawByEmail = async (email: string) => {
+    const business = await businessRepository.findByEmail(email);
+    if (!business) throw new Error("Business not found");
+    return business;
+  };
 }

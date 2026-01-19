@@ -3,12 +3,10 @@ export type BusinessStatus = "Pending" | "Approved" | "Rejected";
 export interface IBusiness {
   _id?: string;
   businessName: string;
-  username: string;
   email: string;
   phoneNumber: string;
   password: string;
-  confirmPassword: string;
-  location?: string;
+  address?: string;
   role?: string;
   businessDocument?: string;
   businessVerified?: boolean;

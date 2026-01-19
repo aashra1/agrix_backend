@@ -6,10 +6,8 @@ import { CreateUserDTO, LoginUserDTO, EditUserDTO } from "../dtos/user.dto";
 import { UserService } from "../services/user.service";
 
 export class UserController {
-
   private userService = new UserService();
 
-  // Register user/admin
   register = async (req: Request, res: Response) => {
     try {
       const validation = CreateUserDTO.safeParse(req.body);
@@ -17,23 +15,15 @@ export class UserController {
         return res.status(400).json({ errors: validation.error });
       }
 
-      const {
-        fullName,
-        email,
-        phoneNumber,
-        password,
-        isAdmin,
-        address,
-      } = validation.data;
+      const { fullName, email, phoneNumber, password, isAdmin, address } =
+        validation.data;
 
       const role = isAdmin ? "Admin" : "User";
-      const hashedPassword = await bcrypt.hash(password, 10);
-
       const newUser: User = {
         fullName,
         email,
         phoneNumber,
-        password: hashedPassword,
+        password,
         address,
         isAdmin: isAdmin || false,
         role,
@@ -46,13 +36,11 @@ export class UserController {
         message: `${role} registered successfully.`,
         user: createdUser,
       });
-
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
     }
   };
 
-  // Login user/admin (EMAIL)
   loginUser = async (req: Request, res: Response) => {
     try {
       const validation = LoginUserDTO.safeParse(req.body);
@@ -62,96 +50,80 @@ export class UserController {
 
       const { email, password } = validation.data;
 
-      const user = await this.userService.getUserByEmail(email);
-      if (!user) {
-        return res.status(404).json({ success: false, message: "User not found" });
-      }
+      // Use the new Raw method to get the password for comparison
+      const userRaw = await this.userService.getUserRawByEmail(email);
 
-      const isMatched = await bcrypt.compare(password, user.password);
+      const isMatched = await bcrypt.compare(password, userRaw.password);
+
       if (!isMatched) {
-        return res.status(401).json({ success: false, message: "Invalid credentials" });
+        return res
+          .status(401)
+          .json({ success: false, message: "Invalid credentials" });
       }
 
       const payload = {
-        id: user._id,
-        role: user.role,
-        isAdmin: user.isAdmin,
+        id: userRaw._id,
+        role: userRaw.role,
+        isAdmin: userRaw.isAdmin,
       };
+      const token = jwt.sign(payload, process.env.JWT_SECRET as string, {
+        expiresIn: "1h",
+      });
 
-      const token = jwt.sign(
-        payload,
-        process.env.JWT_SECRET as string,
-        { expiresIn: "1h" }
-      );
-
-      const { password: _, ...userData } = user;
+      // Sanitize the raw user before returning it in the response
+      const safeUser = this.userService.getSanitizedUser(userRaw);
 
       return res.status(200).json({
         success: true,
         message: "Login successful",
         token,
-        user: userData,
+        user: safeUser,
       });
-
     } catch (error: any) {
       return res.status(500).json({ success: false, message: error.message });
     }
   };
 
-  // Get all users
-  getAllUsers = async (req: Request, res: Response) => {
-    try {
-      const page = Number(req.query.page) || 1;
-      const limit = Number(req.query.limit) || 10;
-
-      const users = await this.userService.getAllUsers(page, limit);
-
-      res.status(200).json({
-        success: true,
-        count: users.length,
-        users,
-      });
-    } catch (error: any) {
-      res.status(500).json({ success: false, message: error.message });
-    }
-  };
-
-  // Get user profile
   getUserProfile = async (req: Request, res: Response) => {
     try {
       const user = await this.userService.getUserById(req.params.userId);
-      const { password, ...profile } = user;
-
-      res.status(200).json({ success: true, profile });
+      res.status(200).json({ success: true, profile: user });
     } catch (error: any) {
       res.status(404).json({ success: false, message: error.message });
     }
   };
 
-  // Update user
   editUserProfile = async (req: Request, res: Response) => {
     try {
       const validation = EditUserDTO.safeParse(req.body);
-      if (!validation.success) {
+      if (!validation.success)
         return res.status(400).json({ errors: validation.error });
-      }
 
       const updatedUser = await this.userService.updateUser(
         req.params.userId,
-        validation.data
+        validation.data,
       );
-
       res.status(200).json({ success: true, updatedUser });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }
   };
 
-  // Delete user
   deleteUserAccount = async (req: Request, res: Response) => {
     try {
       await this.userService.deleteUser(req.params.userId);
       res.status(200).json({ success: true, message: "User deleted" });
+    } catch (error: any) {
+      res.status(500).json({ success: false, message: error.message });
+    }
+  };
+
+  getAllUsers = async (req: Request, res: Response) => {
+    try {
+      const page = Number(req.query.page) || 1;
+      const limit = Number(req.query.limit) || 10;
+      const users = await this.userService.getAllUsers(page, limit);
+      res.status(200).json({ success: true, count: users.length, users });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
     }

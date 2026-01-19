@@ -2,12 +2,10 @@ import mongoose, { Document, Schema, Model } from "mongoose";
 
 export interface BusinessDocument extends Document {
   businessName: string;
-  username: string;
   email: string;
   phoneNumber: string;
   password: string;
-  confirmPassword: string;
-  location?: string;
+  address?: string;
   role: string;
   businessDocument?: string;
   businessVerified: boolean;
@@ -17,12 +15,10 @@ export interface BusinessDocument extends Document {
 const businessSchema: Schema<BusinessDocument> = new Schema(
   {
     businessName: { type: String, required: true },
-    username: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
     phoneNumber: { type: String, required: true },
     password: { type: String, required: true },
-    confirmPassword: { type: String, required: true },
-    location: { type: String },
+    address: { type: String },
     role: { type: String, default: "Business" },
     businessDocument: { type: String },
     businessVerified: { type: Boolean, default: false },
@@ -32,7 +28,7 @@ const businessSchema: Schema<BusinessDocument> = new Schema(
       default: "Pending",
     },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Business: Model<BusinessDocument> =

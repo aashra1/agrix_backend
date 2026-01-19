@@ -4,16 +4,25 @@ import { authGuard, authGuardAdmin } from "../middleware/authGuard";
 import uploadBusinessDoc from "../multer/business.multer";
 
 const router = Router();
+const businessController = new BusinessController();
 
-// Public routes
-router.post("/register", BusinessController.register);
-router.post("/login", BusinessController.login);
+router.post("/register", businessController.register);
+router.post("/login", businessController.login);
 
-// Protected routes
-router.post("/upload-document", authGuard, uploadBusinessDoc.single("document"), BusinessController.uploadDocument);
+router.post(
+  "/upload-document",
+  authGuard,
+  uploadBusinessDoc.single("document"),
+  businessController.uploadDocument,
+);
 
-// Admin-only routes
-router.put("/admin/approve/:businessId", authGuard, authGuardAdmin, BusinessController.approve);
-router.get("/admin/all", authGuard, authGuardAdmin, BusinessController.getAll);
+router.put(
+  "/admin/approve/:businessId",
+  authGuard,
+  authGuardAdmin,
+  businessController.approve,
+);
+
+router.get("/admin/all", authGuard, authGuardAdmin, businessController.getAll);
 
 export default router;
