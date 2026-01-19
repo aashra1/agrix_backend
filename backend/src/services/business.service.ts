@@ -50,6 +50,7 @@ export class BusinessService {
   // Business login
   async login(dto: LoginBusinessDto) {
     const { username, password } = dto;
+    
     const business = await Business.findOne({ username });
     if (!business) throw new Error("Business not found");
 

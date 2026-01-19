@@ -6,11 +6,12 @@ const userRepository: IUserRepository = new UserRepository();
 
 export class UserService {
   createUser = async (user: User) => {
-    const existByEmailOrUsername = await userRepository.findByEmailOrUsername(user.email, user.username);
-    if (existByEmailOrUsername) {
-      throw new Error("User with this email or username already exists");
+    const existByEmail = await userRepository.findByEmail(user.email);
+    if (existByEmail) {
+      throw new Error("User with this email already exists");
     }
-    const { _id, confirmPassword, ...userData } = user;
+
+    const { _id, ...userData } = user;
 
     return userRepository.createUser(userData);
   };
@@ -19,7 +20,7 @@ export class UserService {
     const user = await userRepository.getUserById(userId);
     if (!user) throw new Error("User not found");
 
-    const { _id, confirmPassword, ...data } = updatedData;
+    const { _id, ...data } = updatedData;
 
     return userRepository.updateUser(userId, data);
   };
@@ -35,8 +36,11 @@ export class UserService {
     return user;
   };
 
-  getUserByUsername = async (username: string) => {
-    return userRepository.getUserByUsername(username);
+  // Add this missing method
+  getUserByEmail = async (email: string) => {
+    const user = await userRepository.findByEmail(email);
+    if (!user) throw new Error("User not found");
+    return user;
   };
 
   deleteUser = async (userId: string) => {
