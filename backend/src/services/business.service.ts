@@ -1,5 +1,6 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import { BusinessRepository } from "../repositories/business.repository";
 import { BusinessDocument } from "../model/business.model";
 import {
@@ -7,6 +8,8 @@ import {
   LoginBusinessDto,
   ApproveBusinessDto,
 } from "../dtos/business.dto";
+
+dotenv.config();
 
 const businessRepository = new BusinessRepository();
 
@@ -29,16 +32,14 @@ export class BusinessService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newBusinessData = {
+    const createdBusiness = await businessRepository.create({
       businessName,
       email,
       phoneNumber,
       password: hashedPassword,
       address,
-      businessStatus: "Pending" as const,
-    };
-
-    const createdBusiness = await businessRepository.create(newBusinessData);
+      businessStatus: "Pending",
+    });
 
     const tempToken = jwt.sign(
       { id: createdBusiness._id, role: "Business", temp: true },
@@ -80,18 +81,23 @@ export class BusinessService {
     };
   };
 
-  uploadDocument = async (businessId: string, documentPath: string) => {
+  uploadDocument = async (
+    businessId: string,
+    documentPath: string,
+  ): Promise<BusinessDocument> => {
     const business = await businessRepository.findById(businessId);
     if (!business) throw new Error("Business not found");
 
     business.businessDocument = documentPath;
     business.businessStatus = "Pending";
 
-    const updated = await businessRepository.save(business);
-    return this.sanitizeBusiness(updated);
+    return await businessRepository.save(business);
   };
 
-  approveBusiness = async (businessId: string, dto: ApproveBusinessDto) => {
+  approveBusiness = async (
+    businessId: string,
+    dto: ApproveBusinessDto,
+  ): Promise<BusinessDocument> => {
     const business = await businessRepository.findById(businessId);
     if (!business) throw new Error("Business not found");
 
@@ -103,12 +109,12 @@ export class BusinessService {
       business.businessStatus = "Rejected";
     }
 
-    const updated = await businessRepository.save(business);
-    return this.sanitizeBusiness(updated);
+    return await businessRepository.save(business);
   };
 
-  getAllBusinesses = async () => {
-    const businesses = await businessRepository.findAll();
+  getAllBusinesses = async (page: number = 1, limit: number = 10) => {
+    const skip = (page - 1) * limit;
+    const businesses = await businessRepository.findAll(skip, limit);
     return businesses.map((b) => this.sanitizeBusiness(b));
   };
 
