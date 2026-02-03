@@ -19,7 +19,7 @@ connectDB();
 // Middleware
 app.use(bodyParser.json());
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(process.cwd(), "src/uploads")));
 
 // Register Routes
 app.use("/api/user", userRoutes);

@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { User } from "../types/user.type";
 import { CreateUserDTO, LoginUserDTO, EditUserDTO } from "../dtos/user.dto";
 import { UserService } from "../services/user.service";
+import fs from "fs";
 
 export class UserController {
   private userService = new UserService();
@@ -12,6 +13,8 @@ export class UserController {
     try {
       const validation = CreateUserDTO.safeParse(req.body);
       if (!validation.success) {
+        // If validation fails, delete the uploaded file immediately
+        if (req.file) fs.unlinkSync(req.file.path);
         return res.status(400).json({ errors: validation.error });
       }
 
@@ -35,13 +38,14 @@ export class UserController {
       };
 
       const createdUser = await this.userService.createUser(newUser);
-
       return res.status(201).json({
         success: true,
         message: `${role} registered successfully.`,
         user: createdUser,
       });
     } catch (error: any) {
+      // If database save fails, delete the uploaded file
+      if (req.file) fs.unlinkSync(req.file.path);
       return res.status(500).json({ success: false, message: error.message });
     }
   };
