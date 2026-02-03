@@ -1,13 +1,15 @@
 import { IUser, UserModel } from "../model/user.model";
 
-
 export interface IUserRepository {
   getAllUsers(skip?: number, limit?: number): Promise<IUser[]>;
   getUserById(userId: string): Promise<IUser | null>;
-  getUserByEmail(email: string): Promise<IUser | null>; 
+  getUserByEmail(email: string): Promise<IUser | null>;
   findByEmail(email: string): Promise<IUser | null>;
   createUser(user: Partial<IUser>): Promise<IUser>;
-  updateUser(userId: string, updatedData: Partial<IUser>): Promise<IUser | null>;
+  updateUser(
+    userId: string,
+    updatedData: Partial<IUser>,
+  ): Promise<IUser | null>;
   deleteUser(userId: string): Promise<IUser | null>;
 }
 
@@ -33,8 +35,11 @@ export class UserRepository implements IUserRepository {
     return newUser.save();
   }
 
-  async updateUser(userId: string, updatedData: Partial<IUser>) {
-    return UserModel.findByIdAndUpdate(userId, updatedData, { new: true }).exec();
+  async updateUser(
+    userId: string,
+    data: Partial<IUser>,
+  ): Promise<IUser | null> {
+    return await UserModel.findByIdAndUpdate(userId, data, { new: true });
   }
 
   async deleteUser(userId: string) {

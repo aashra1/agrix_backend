@@ -37,8 +37,12 @@ export class UserService {
     if (!user) throw new Error("User not found");
 
     const { _id, ...data } = updatedData;
+
     const updatedUser = await userRepository.updateUser(userId, data);
-    return this.sanitizeUser(updatedUser!);
+
+    if (!updatedUser) throw new Error("Failed to update user");
+
+    return this.sanitizeUser(updatedUser);
   };
 
   getAllUsers = async (page: number = 1, limit: number = 10) => {

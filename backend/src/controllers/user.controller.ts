@@ -105,13 +105,20 @@ export class UserController {
   editUserProfile = async (req: Request, res: Response) => {
     try {
       const validation = EditUserDTO.safeParse(req.body);
-      if (!validation.success)
+      if (!validation.success) {
         return res.status(400).json({ errors: validation.error });
+      }
+      const updateData: Partial<User> = { ...validation.data };
+
+      if (req.file) {
+        updateData.profilePicture = `uploads/profiles/${req.file.filename}`;
+      }
 
       const updatedUser = await this.userService.updateUser(
         req.params.userId,
-        validation.data,
+        updateData,
       );
+
       res.status(200).json({ success: true, updatedUser });
     } catch (error: any) {
       res.status(500).json({ success: false, message: error.message });
