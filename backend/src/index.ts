@@ -7,12 +7,20 @@ import productRoutes from "./routes/product.routes";
 import categoryRoutes from "./routes/category.routes";
 import connectDB from "./database/db";
 import path from "path";
+import cors from "cors";
 
 dotenv.config();
 
 const app: Application = express();
 const PORT = process.env.PORT;
 
+// CORS setup
+const corsOptions = {
+  origin: true,
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
 //database connection
 connectDB();
 
