@@ -21,7 +21,9 @@ export class UserService {
 
   createUser = async (user: User) => {
     const existByEmail = await userRepository.findByEmail(user.email);
-    if (existByEmail) throw new Error("User with this email already exists");
+    if (existByEmail) {
+      throw new Error("User with this email already exists");
+    }
 
     const hashedPassword = await bcrypt.hash(user.password, 10);
     const { _id, ...userData } = { ...user, password: hashedPassword };

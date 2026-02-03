@@ -17,8 +17,12 @@ export class UserController {
 
       const { fullName, email, phoneNumber, password, isAdmin, address } =
         validation.data;
-
       const role = isAdmin ? "Admin" : "User";
+
+      const profilePicture = req.file
+        ? `uploads/profiles/${req.file.filename}`
+        : undefined;
+
       const newUser: User = {
         fullName,
         email,
@@ -27,6 +31,7 @@ export class UserController {
         address,
         isAdmin: isAdmin || false,
         role,
+        profilePicture,
       };
 
       const createdUser = await this.userService.createUser(newUser);

@@ -9,6 +9,7 @@ export const UserSchema = z.object({
   address: z.string().optional(),
   isAdmin: z.boolean().optional(),
   role: z.enum(["User", "Admin"]).optional(),
+  profilePicture: z.string().optional(),
 });
 
 export type User = z.infer<typeof UserSchema>;

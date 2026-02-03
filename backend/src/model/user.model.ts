@@ -8,6 +8,7 @@ export interface IUser extends Document {
   address?: string;
   isAdmin?: boolean;
   role?: "User" | "Admin";
+  profilePicture?: string;
 }
 
 const UserSchema: Schema<IUser> = new mongoose.Schema(
@@ -17,10 +18,11 @@ const UserSchema: Schema<IUser> = new mongoose.Schema(
     phoneNumber: { type: String, required: true },
     password: { type: String, required: true },
     address: { type: String },
+    profilePicture: { type: String },
     isAdmin: { type: Boolean, default: false },
     role: { type: String, enum: ["User", "Admin"], default: "User" },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const UserModel = mongoose.model<IUser>("User", UserSchema);

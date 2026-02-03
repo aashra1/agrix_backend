@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { UserSchema } from "../types/user.type";
 
-// Remove confirmPassword completely
 export const CreateUserDTO = UserSchema.pick({
   fullName: true,
   email: true,
@@ -9,6 +8,7 @@ export const CreateUserDTO = UserSchema.pick({
   password: true,
   isAdmin: true,
   address: true,
+  profilePicture: true,
 });
 
 export type CreateUserDTO = z.infer<typeof CreateUserDTO>;
@@ -25,6 +25,7 @@ export const EditUserDTO = UserSchema.pick({
   email: true,
   phoneNumber: true,
   address: true,
+  profilePicture: true,
 }).partial();
 
 export type EditUserDTO = z.infer<typeof EditUserDTO>;
